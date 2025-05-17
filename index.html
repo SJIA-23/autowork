@@ -1,38 +1,150 @@
-<!-- 加在你 <script> 裡 -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-          const countrySelect = document.getElementById('country');
-          const citySelect = document.getElementById('city');
-      
-          // 1. 取得國家清單（GeoNames API）
-          fetch('http://api.geonames.org/countryInfoJSON?username=sjia23') // 改成你的 username
-            .then((response) => response.json())
-            .then((data) => {
-              const countries = data.geonames;
-              countries.forEach((country) => {
-                const option = document.createElement('option');
-                option.value = country.geonameId; // 或 country.countryCode
-                option.textContent = country.countryName;
-                countrySelect.appendChild(option);
-              });
-            });
-      
-          // 2. 當選擇國家時，取得對應城市
-          countrySelect.addEventListener('change', () => {
-            const countryId = countrySelect.value;
-      
-            fetch(`http://api.geonames.org/childrenJSON?geonameId=${countryId}&username=sjia23`)
-              .then((response) => response.json())
-              .then((data) => {
-                citySelect.innerHTML = ''; // 清空舊資料
-                data.geonames.forEach((city) => {
-                  const option = document.createElement('option');
-                  option.value = city.name;
-                  option.textContent = city.name;
-                  citySelect.appendChild(option);
-                });
-              });
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智慧行程推薦器</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .section { margin-bottom: 20px; }
+    .route { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    select, button { padding: 5px 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>旅遊行程推薦系統</h1>
+
+  <!-- 搜尋紀錄功能 -->
+  <div class="section">
+    <h2>是否有搜尋紀錄？</h2>
+    <button onclick="useSearchHistory()">使用搜尋紀錄</button>
+    <button onclick="showManualSelect()">手動選擇地點</button>
+  </div>
+
+  <!-- 手動選擇 -->
+  <div class="section" id="manual-select" style="display: none;">
+    <h2>請選擇目的地</h2>
+    <label>國家：
+      <select id="country">
+        <option value="">-- 請選擇國家 --</option>
+      </select>
+    </label>
+    <label>城市：
+      <select id="city">
+        <option value="">-- 請先選擇國家 --</option>
+      </select>
+    </label>
+    <button onclick="generateRoutes()">產生行程</button>
+  </div>
+
+  <!-- 顯示推薦行程 -->
+  <div class="section" id="route-results">
+    <h2>推薦行程</h2>
+    <div id="routes"></div>
+  </div>
+
+  <script>
+    // 初始化國家與城市
+    document.addEventListener('DOMContentLoaded', () => {
+      const countrySelect = document.getElementById('country');
+      const citySelect = document.getElementById('city');
+
+      // 取得國家資料
+      fetch('http://api.geonames.org/countryInfoJSON?username=sssjiaaa')
+        .then((res) => res.json())
+        .then((data) => {
+          const countries = data.geonames;
+          countries.forEach((country) => {
+            const option = document.createElement('option');
+            option.value = country.geonameId;
+            option.textContent = country.countryName;
+            countrySelect.appendChild(option);
           });
         });
-      </script>
-      
+
+      // 當國家改變時載入城市
+      countrySelect.addEventListener('change', () => {
+        const geonameId = countrySelect.value;
+        citySelect.innerHTML = '<option>載入中...</option>';
+
+        fetch(`http://api.geonames.org/childrenJSON?geonameId=${geonameId}&username=sssjiaaa`)
+          .then((res) => res.json())
+          .then((data) => {
+            citySelect.innerHTML = '';
+            data.geonames.forEach((city) => {
+              const option = document.createElement('option');
+              option.value = city.name;
+              option.textContent = city.name;
+              citySelect.appendChild(option);
+            });
+          })
+          .catch(() => {
+            citySelect.innerHTML = '<option>載入城市失敗</option>';
+          });
+      });
+    });
+
+    function showManualSelect() {
+      document.getElementById('manual-select').style.display = 'block';
+    }
+
+    function useSearchHistory() {
+      const interests = ['櫻花', '美食'];
+      const city = '東京';
+      generateRoutes(city, interests);
+    }
+
+    function generateRoutes(city = null, interests = []) {
+      if (!city) {
+        const citySelect = document.getElementById('city');
+        city = citySelect.value;
+      }
+
+      if (interests.length === 0) {
+        interests = ['觀光', '美食', '文化'];
+      }
+
+      const routesContainer = document.getElementById('routes');
+      routesContainer.innerHTML = '';
+
+      for (let i = 1; i <= 3; i++) {
+        const routeDiv = document.createElement('div');
+        routeDiv.className = 'route';
+        routeDiv.innerHTML = `
+          <h3>行程 ${i}</h3>
+          <p>目的地：${city}</p>
+          <p>主題：${interests[i - 1]}</p>
+          <p>建議景點：${generateSamplePlaces(city, interests[i - 1])}</p>
+        `;
+        routesContainer.appendChild(routeDiv);
+      }
+    }
+
+    function generateSamplePlaces(city, interest) {
+      const samples = {
+        '東京': {
+          '櫻花': ['上野公園', '目黑川'],
+          '美食': ['築地市場', '拉麵街'],
+          '文化': ['淺草寺', '明治神宮'],
+          '觀光': ['東京鐵塔', '晴空塔']
+        },
+        '巴黎': {
+          '觀光': ['艾菲爾鐵塔', '凱旋門'],
+          '美食': ['瑪黑區甜點', '巴黎咖啡館'],
+          '文化': ['羅浮宮', '奧賽美術館']
+        },
+        '台北': {
+          '觀光': ['101大樓', '象山'],
+          '美食': ['士林夜市', '永康街牛肉麵'],
+          '文化': ['國立故宮博物院', '中正紀念堂']
+        }
+      };
+
+      const places = samples[city]?.[interest] || ['景點一', '景點二'];
+      return places.join(', ');
+    }
+  </script>
+
+</body>
+</html>
