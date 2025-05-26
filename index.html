@@ -15,84 +15,52 @@
 
   <h1>旅遊行程推薦系統</h1>
 
-  <!-- 搜尋紀錄功能 -->
+  <!-- 模擬搜尋紀錄 -->
   <div class="section">
     <h2>是否有搜尋紀錄？</h2>
     <button onclick="useSearchHistory()">使用搜尋紀錄</button>
     <button onclick="showManualSelect()">手動選擇地點</button>
   </div>
 
-  <!-- 手動選擇 -->
+  <!-- 手動選擇地點 -->
   <div class="section" id="manual-select" style="display: none;">
     <h2>請選擇目的地</h2>
     <label>國家：
       <select id="country">
-        <option value="">-- 請選擇國家 --</option>
+        <option value="日本">日本</option>
+        <option value="法國">法國</option>
+        <option value="台灣">台灣</option>
+        <option value="馬來西亞">馬來西亞</option>
+        <option value="泰國">泰國</option>
+        <option value="韓國">韓國</option>
       </select>
     </label>
     <label>城市：
       <select id="city">
-        <option value="">-- 請先選擇國家 --</option>
+        <option value="東京">東京</option>
+        <option value="巴黎">巴黎</option>
+        <option value="台北">台北</option>
       </select>
     </label>
     <button onclick="generateRoutes()">產生行程</button>
   </div>
 
-  <!-- 顯示推薦行程 -->
+  <!-- 顯示推薦路線 -->
   <div class="section" id="route-results">
     <h2>推薦行程</h2>
     <div id="routes"></div>
   </div>
 
   <script>
-    // 初始化國家與城市
-    document.addEventListener('DOMContentLoaded', () => {
-      const countrySelect = document.getElementById('country');
-      const citySelect = document.getElementById('city');
-
-      // 取得國家資料
-      fetch('http://api.geonames.org/countryInfoJSON?username=ssssssia')
-        .then((res) => res.json())
-        .then((data) => {
-          const countries = data.geonames;
-          countries.forEach((country) => {
-            const option = document.createElement('option');
-            option.value = country.geonameId;
-            option.textContent = country.countryName;
-            countrySelect.appendChild(option);
-          });
-        });
-
-      // 當國家改變時載入城市
-      countrySelect.addEventListener('change', () => {
-        const geonameId = countrySelect.value;
-        citySelect.innerHTML = '<option>載入中...</option>';
-
-        fetch(`http://api.geonames.org/childrenJSON?geonameId=${geonameId}&username=ssssssia`)
-          .then((res) => res.json())
-          .then((data) => {
-            citySelect.innerHTML = '';
-            data.geonames.forEach((city) => {
-              const option = document.createElement('option');
-              option.value = city.name;
-              option.textContent = city.name;
-              citySelect.appendChild(option);
-            });
-          })
-          .catch(() => {
-            citySelect.innerHTML = '<option>載入城市失敗</option>';
-          });
-      });
-    });
-
-    function showManualSelect() {
-      document.getElementById('manual-select').style.display = 'block';
-    }
-
     function useSearchHistory() {
+      // 假設使用者搜尋過「日本 東京 櫻花 美食」
       const interests = ['櫻花', '美食'];
       const city = '東京';
       generateRoutes(city, interests);
+    }
+
+    function showManualSelect() {
+      document.getElementById('manual-select').style.display = 'block';
     }
 
     function generateRoutes(city = null, interests = []) {
@@ -102,6 +70,7 @@
       }
 
       if (interests.length === 0) {
+        // 根據城市給出預設興趣主題
         interests = ['觀光', '美食', '文化'];
       }
 
@@ -111,17 +80,16 @@
       for (let i = 1; i <= 3; i++) {
         const routeDiv = document.createElement('div');
         routeDiv.className = 'route';
-        routeDiv.innerHTML = `
-          <h3>行程 ${i}</h3>
+        routeDiv.innerHTML = `<h3>行程 ${i}</h3>
           <p>目的地：${city}</p>
           <p>主題：${interests[i - 1]}</p>
-          <p>建議景點：${generateSamplePlaces(city, interests[i - 1])}</p>
-        `;
+          <p>建議景點：${generateSamplePlaces(city, interests[i - 1])}</p>`;
         routesContainer.appendChild(routeDiv);
       }
     }
 
     function generateSamplePlaces(city, interest) {
+      // 簡單模擬建議景點
       const samples = {
         '東京': {
           '櫻花': ['上野公園', '目黑川'],
