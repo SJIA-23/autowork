@@ -51,7 +51,7 @@
       const citySelect = document.getElementById('city');
 
       // 取得國家資料
-      fetch('http://api.geonames.org/countryInfoJSON?username=sssjiaaa')
+      fetch('http://api.geonames.org/countryInfoJSON?username=ssssssia')
         .then((res) => res.json())
         .then((data) => {
           const countries = data.geonames;
@@ -68,7 +68,7 @@
         const geonameId = countrySelect.value;
         citySelect.innerHTML = '<option>載入中...</option>';
 
-        fetch(`http://api.geonames.org/childrenJSON?geonameId=${geonameId}&username=sssjiaaa`)
+        fetch(`http://api.geonames.org/childrenJSON?geonameId=${geonameId}&username=ssssssia`)
           .then((res) => res.json())
           .then((data) => {
             citySelect.innerHTML = '';
